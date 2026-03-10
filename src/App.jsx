@@ -95,10 +95,21 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200/60 dark:border-[#1A1A1A] py-4 px-4 md:px-6 text-center transition-colors duration-300">
-        <p className="text-gray-400 dark:text-[#555] text-xs font-medium">
-          Built with React + Vite &middot; Powered by Frankfurter API
+      <footer className="border-t border-white/40 dark:border-[#1A1A1A] py-6 px-4 md:px-6 flex flex-col items-center justify-center gap-3 transition-colors duration-300">
+        <p className="text-gray-500 dark:text-[#888] text-sm font-medium">
+          Built by <span className="text-gray-900 dark:text-white font-semibold">Rishabh Tripathi</span>
         </p>
+        <div className="flex items-center gap-4 text-gray-500 dark:text-[#888]">
+          <a href="https://github.com/rishabhworkspace" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="GitHub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/rishabh-tripathi-728a77317" target="_blank" rel="noopener noreferrer" className="hover:text-[#0A66C2] dark:hover:text-[#0A66C2] transition-colors" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+          </a>
+          <a href="mailto:rishabh.j.tripathi2903@gmail.com" className="hover:text-red-500 dark:hover:text-red-400 transition-colors" aria-label="Email">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+          </a>
+        </div>
       </footer>
 
       {/* Insights Overlay */}
