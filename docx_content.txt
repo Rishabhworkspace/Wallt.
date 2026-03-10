@@ -1,0 +1,516 @@
+MARKETING MOJITO
+Web Developer Intern Assignment
+EXPENSE TRACKER APP
+Complete Build Guideline
+
+React + Vite
+Tailwind CSS
+Frankfurter API
+
+
+1. WHAT WE'RE BUILDING
+A dark-themed, fintech-style personal expense tracker — built with React, styled with Tailwind, powered by a live currency conversion API. The goal is not just to complete the brief but to build something that looks and feels like a real product.
+Core Features
+Add expenses: name, amount, category (Food / Travel / Marketing / Utilities / Other)
+Expense list: card layout with category color, delete with exit animation
+Running total: updates live as you add / remove entries
+Category breakdown: visual progress bars per category
+Currency conversion: live rates from Frankfurter API, 8 currency options
+localStorage persistence: expenses survive page refresh
+Responsive: works at 1600×900 (desktop) and 414×749 (mobile)
+
+
+2. DESIGN SYSTEM
+Theme Direction
+Dark fintech dashboard — professional, dense, intentional. Uses Marketing Mojito's brand green as the single accent color. Everything else is near-black backgrounds with subtle borders. Amounts always in monospace. Think "Vercel dashboard meets budgeting app."
+Color Palette
+ 
+#0A0A0A
+Background (body)
+
+ 
+#141414
+Card surface
+
+ 
+#1E1E1E
+Elevated card
+
+ 
+#2A2A2A
+Border
+
+ 
+#85C341
+Brand accent (Mojito)
+
+ 
+#F5F5F5
+Text primary
+
+ 
+#888888
+Text muted
+
+ 
+#F97316
+Food category
+
+ 
+#3B82F6
+Travel category
+
+ 
+#85C341
+Marketing category
+
+ 
+#EAB308
+Utilities category
+
+ 
+#A855F7
+Other category
+
+
+Typography
+Role
+Font
+Weight
+Usage
+Display / Headings
+Syne
+700, 800
+App title, section headers
+Body text
+DM Sans
+400, 500
+Labels, descriptions, inputs
+Financial figures
+JetBrains Mono
+400, 600
+ALL currency amounts
+
+Google Fonts import (add to index.html):
+<link href="https://fonts.googleapis.com/css2?
+  family=Syne:wght@700;800&
+  family=DM+Sans:wght@400;500&
+  family=JetBrains+Mono:wght@400;600&
+  display=swap" rel="stylesheet">
+
+Tailwind Theme Extension
+// tailwind.config.js
+theme: {
+  extend: {
+    fontFamily: {
+      sans:    ["DM Sans", "sans-serif"],
+      mono:    ["JetBrains Mono", "monospace"],
+      display: ["Syne", "sans-serif"],
+    },
+    colors: {
+      accent: "#85C341",
+      surface: "#141414",
+      elevated: "#1E1E1E",
+    },
+  }
+}
+
+Reusable Class Patterns
+Memorize these — apply consistently across ALL components:
+Token
+Tailwind classes
+Card
+bg-[#141414] border border-[#2A2A2A] rounded-2xl p-5
+Elevated card
+bg-[#1E1E1E] border border-[#2A2A2A] rounded-xl p-4
+Input
+bg-[#0F0F0F] border border-[#2A2A2A] rounded-lg px-3 py-2 text-white focus:border-accent focus:outline-none
+Primary button
+bg-accent text-black font-semibold rounded-lg px-4 py-2 hover:brightness-110 transition disabled:opacity-40
+Ghost button
+border border-[#2A2A2A] text-[#888] rounded-lg px-3 py-1.5 hover:border-accent hover:text-white transition
+Amount text
+font-mono text-white
+Muted text
+text-[#888] text-sm
+Category badge
+text-xs font-semibold px-2 py-0.5 rounded-full
+
+3. LAYOUT & RESPONSIVENESS
+Desktop Layout (≥ 1024px)
+HEADER — App name + running total (large monospace)
+LEFT COLUMN  (400px)
+ExpenseForm  ← add expense inputs
+CurrencyConverter  ← API + dropdown
+
+RIGHT COLUMN  (fluid)
+SummaryPanel  ← total + category bars
+ExpenseList  ← scrollable cards
+
+
+
+Tailwind grid class:
+<main className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 max-w-7xl mx-auto px-4 py-8">
+
+Mobile Layout (< 768px)
+Single column stack. Form is at top, then CurrencyConverter, then SummaryPanel, then ExpenseList. Use clamp() for font scaling:
+text-[clamp(1.5rem,5vw,2.5rem)]  /* Running total heading */
+text-3xl lg:text-5xl              /* Simpler alternative */
+
+Breakpoint Summary
+Breakpoint
+Layout
+Notes
+< 768px  (mobile)
+Single column
+414×749 — test this explicitly
+768–1024px
+Single column, wider
+Tablet fallback
+≥ 1024px (desktop)
+2-col grid (400px + 1fr)
+1600×900 — primary target
+
+4. FILE ARCHITECTURE
+📁 expense-tracker/
+  📁 src/
+    📁 components/
+      📄 ExpenseForm.jsx   ← controlled form, validation, submit handler
+      📄 ExpenseCard.jsx   ← single expense row, delete animation
+      📄 ExpenseList.jsx   ← maps cards, empty state, sort toggle
+      📄 SummaryPanel.jsx   ← total, converted total, category bars
+      📄 CurrencyConverter.jsx   ← dropdown, API state, error/loading UI
+    📁 hooks/
+      📄 useExpenses.js   ← all expense CRUD + derived state
+      📄 useCurrencyRate.js   ← fetch, loading, error, retry
+    📁 utils/
+      📄 categories.js   ← CATEGORIES array — single source of truth
+    📄 App.jsx   ← composition only — zero business logic
+    📄 main.jsx   ← entry point
+📄 index.html   ← Google Fonts link here
+📄 tailwind.config.js   ← font + color extensions
+📄 README.md   ← screenshot + live link + run instructions
+
+Why this structure impresses reviewers:
+hooks/ separates all state logic from UI — App.jsx stays clean
+utils/categories.js means colors never get hardcoded in components
+Each component file is one responsibility, easily unit-testable
+README with screenshot shows you think about the whole product, not just the code
+
+5. COMPONENT BREAKDOWN
+
+📝  ExpenseForm
+Controlled form for adding a new expense. Validates all fields before enabling submit. Resets and refocuses after successful add.
+Props
+  onAdd: (expense: { name, amount, category }) => void
+State / Logic
+• Local state: { name, amount, category } — all strings initially empty
+• isValid = name.trim() && parseFloat(amount) > 0 && category !== ""
+• useRef on name input → focus() after submit
+• onSubmit: call onAdd(), reset state, refocus
+UX Details
+✓  Category select shows emoji inline (🍔 Food, ✈️ Travel, etc.)
+✓  Submit button disabled + opacity-50 when isValid is false
+✓  Amount input: type="number" min="0.01" step="0.01"
+✓  New card entering the list should animate: fade-in + slide-down
+
+🃏  ExpenseCard
+Renders a single expense. Handles its own deletion animation — waits 280ms before calling onDelete so the exit animation completes.
+Props
+  expense: { id, name, amount, category, createdAt }
+  onDelete: (id: string) => void
+State / Logic
+• Local: deleting = false → set true on delete click
+• setTimeout 280ms → then call onDelete(expense.id)
+• className includes "opacity-0 scale-95" when deleting is true
+UX Details
+✓  Category color dot on the left (bg-[category.color] w-2 h-2 rounded-full)
+✓  Amount always in font-mono — right-aligned
+✓  Category badge: small pill with category.color background at 20% opacity
+✓  Hover state on card: subtle border brightening
+✓  Delete button: hidden by default, visible on card hover (group-hover:visible)
+
+📋  ExpenseList
+Renders sorted list of ExpenseCards. Handles empty state and exposes a sort toggle. Passes onDelete down to each card.
+Props
+  expenses: Expense[]
+  onDelete: (id: string) => void
+State / Logic
+• Local: sortBy = "date" | "amount"
+• sorted = useMemo: if "amount" → [...expenses].sort((a,b) => b.amount - a.amount)
+• Otherwise expenses array is already newest-first (from useExpenses hook)
+UX Details
+✓  Empty state: centered icon + "No expenses yet. Add your first one above."
+✓  Sort toggle: two small ghost buttons — "Latest" | "Highest"
+✓  Expense count badge in section header: "3 expenses"
+✓  List scrollable independently on desktop (max-h + overflow-y-auto)
+
+📊  SummaryPanel
+Shows the running total, converted total, and animated category breakdown bars. Receives all data as props — no internal fetching.
+Props
+  total: number
+  byCategory: Record<string, number>
+  convertedTotal: number | null
+  targetCurrency: string
+State / Logic
+• maxSpend = Math.max(...Object.values(byCategory)) for bar scaling
+• barWidth = (categorySpend / maxSpend) * 100 + "%"
+• No local state — pure display component
+UX Details
+✓  Total: font-mono text-4xl lg:text-5xl — most prominent element
+✓  Converted total shown below in muted text if convertedTotal !== null
+✓  Category bars animate width: transition-[width] duration-500 ease-out
+✓  Each bar row: emoji + label left, amount right, bar underneath
+✓  "Highest spend" accent badge on top category
+✓  If no expenses yet, show placeholder dashes instead of zeros
+
+💱  CurrencyConverter
+Fetches live exchange rates from Frankfurter API. Exposes a currency dropdown. Notifies parent of the converted total via onConverted callback.
+Props
+  total: number
+  onConverted: (amount: number | null, currency: string) => void
+State / Logic
+• Local: targetCurrency = "INR" (default — good for Indian audience)
+• useCurrencyRate(targetCurrency) custom hook handles fetch
+• converted = rates?.[targetCurrency] ? (total * rates[targetCurrency]).toFixed(2) : null
+• useEffect: call onConverted(converted, targetCurrency) when either changes
+UX Details
+✓  Loading: skeleton pulse div where the amount would be
+✓  Error: amber banner "Live rates unavailable" + Retry button — component stays visible
+✓  "Updated at HH:MM" timestamp shown in muted text on success
+✓  Currencies: USD, EUR, GBP, INR, JPY, AED, SGD, CAD
+✓  Dropdown styled to match the dark theme (not browser default)
+
+6. CUSTOM HOOKS
+useExpenses.js
+Encapsulates 100% of expense business logic. App.jsx only calls this hook and passes results to components.
+export function useExpenses() {
+  // ① Lazy initializer reads localStorage once on mount
+  const [expenses, setExpenses] = useState(() => {
+    try {
+      const saved = localStorage.getItem("mm-expenses");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  // ② Persist to localStorage on every change
+  useEffect(() => {
+    localStorage.setItem("mm-expenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  // ③ CRUD
+  const addExpense = ({ name, amount, category }) =>
+    setExpenses(prev => [{ id: uuid(), name, amount: parseFloat(amount),
+      category, createdAt: Date.now() }, ...prev]);
+
+  const deleteExpense = (id) =>
+    setExpenses(prev => prev.filter(e => e.id !== id));
+
+  // ④ Derived state — memoized, never re-computed unless expenses changes
+  const total = useMemo(
+    () => expenses.reduce((sum, e) => sum + e.amount, 0), [expenses]);
+
+  const byCategory = useMemo(() =>
+    expenses.reduce((acc, e) => {
+      acc[e.category] = (acc[e.category] || 0) + e.amount;
+      return acc;
+    }, {}), [expenses]);
+
+  return { expenses, addExpense, deleteExpense, total, byCategory };
+}
+
+useCurrencyRate.js
+Handles all API concerns. Always returns loading/error/data — never leaves the caller guessing.
+export function useCurrencyRate(baseCurrency = "USD") {
+  const [rates, setRates]         = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
+  const [updatedAt, setUpdatedAt] = useState(null);
+
+  const fetchRates = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch(
+        `https://api.frankfurter.app/latest?from=${baseCurrency}`
+      );
+      if (!res.ok) throw new Error("API responded with " + res.status);
+      const data = await res.json();
+      setRates(data.rates);
+      setUpdatedAt(new Date());
+    } catch (err) {
+      setError("Could not fetch live rates.");
+      // Important: do NOT clear previous rates — show stale data if available
+    } finally {
+      setLoading(false);
+    }
+  }, [baseCurrency]);
+
+  useEffect(() => { fetchRates(); }, [fetchRates]);
+
+  return { rates, loading, error, updatedAt, retry: fetchRates };
+}
+
+7. APP.JSX — THE COMPOSITION LAYER
+App.jsx should have ZERO business logic. It only wires components together. This is the single biggest signal of developer maturity that reviewers look for.
+export default function App() {
+  // One hook call — all expense logic lives inside it
+  const { expenses, addExpense, deleteExpense, total, byCategory }
+    = useExpenses();
+
+  // Only UI state lives here
+  const [convertedTotal, setConvertedTotal] = useState(null);
+  const [targetCurrency, setTargetCurrency] = useState("INR");
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white font-sans">
+
+      {/* Header */}
+      <header className="border-b border-[#1A1A1A] px-6 py-4 flex justify-between items-center">
+        <h1 className="font-display text-xl font-bold text-accent">
+          💸 ExpenseTrack
+        </h1>
+        <span className="font-mono text-2xl font-semibold">
+          ${total.toFixed(2)}
+        </span>
+      </header>
+
+      {/* Two-column grid */}
+      <main className="max-w-7xl mx-auto px-4 py-8
+                       grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
+
+        <aside className="flex flex-col gap-6">
+          <ExpenseForm onAdd={addExpense} />
+          <CurrencyConverter
+            total={total}
+            onConverted={(amt, cur) => {
+              setConvertedTotal(amt);
+              setTargetCurrency(cur);
+            }}
+          />
+        </aside>
+
+        <section className="flex flex-col gap-6">
+          <SummaryPanel
+            total={total}
+            byCategory={byCategory}
+            convertedTotal={convertedTotal}
+            targetCurrency={targetCurrency}
+          />
+          <ExpenseList expenses={expenses} onDelete={deleteExpense} />
+        </section>
+
+      </main>
+    </div>
+  );
+}
+
+8. API STRATEGY
+Frankfurter API — Why This Choice
+No API key required — zero setup friction
+CORS-friendly — works directly from browser fetch()
+Free, reliable, maintained by European Central Bank data
+Returns clean JSON: { rates: { EUR: 0.91, GBP: 0.78, ... } }
+
+Endpoint:
+https://api.frankfurter.app/latest?from=USD
+
+3 States You Must Handle
+State
+UI Behaviour
+Implementation
+loading: true
+Skeleton shimmer on amount
+div with animate-pulse bg-[#2A2A2A] rounded
+error: truthy
+Amber warning + Retry button visible
+Never unmount the converter component
+rates: data
+Show converted amount + timestamp
+rates[targetCurrency] * total
+
+Critical rule:
+When the API fails, DO NOT clear the previous rates. Show stale data with a warning. This mimics real-world financial app behaviour and shows maturity.
+
+9. ANIMATIONS & MICRO-INTERACTIONS
+All animations are CSS-only via Tailwind. No animation libraries needed.
+Interaction
+Tailwind Classes
+How
+Card enters list
+transition-all duration-300 animate-in
+New card fades + slides in
+Card delete exit
+opacity-0 scale-95 transition-all duration-300
+Set deleting state, setTimeout 280ms
+Category bars grow
+transition-[width] duration-500 ease-out
+Width driven by JS value change
+Button hover
+hover:brightness-110 transition
+Brightens accent color on hover
+Input focus ring
+focus:border-accent focus:ring-1 focus:ring-accent
+Tailwind focus utilities
+API skeleton
+animate-pulse bg-[#2A2A2A] rounded
+Replaces amount while loading
+
+10. WHAT MAKES YOU STAND OUT
+Most Candidates vs. You
+❌  Most Candidates
+✅  You
+✗  Table layout (rows)
+✓  Card layout with exit animations
+✗  Inline state everywhere
+✓  Custom hooks, App.jsx = composition only
+✗  API error crashes the UI
+✓  Graceful error banner + retry + stale data
+✗  Generic white background
+✓  Dark fintech theme, intentional typography
+✗  No persistence
+✓  localStorage with safe JSON parse fallback
+✗  No README
+✓  README with screenshot + live link + setup
+✗  Inter / Roboto fonts
+✓  Syne + DM Sans + JetBrains Mono
+✗  Only required features
+✓  Sort toggle + expense count + stale indicator
+
+The Brief Note — Write This
+"Optional but recommended" means: everyone who wants the job writes this. 250 words. Structure it exactly like this:
+①
+What you built — one sentence overview
+②
+Tech choices + why (Vite over CRA, Frankfurter over ExchangeRate-API, CSS Modules or Tailwind)
+③
+Architecture decision — custom hooks pattern, separation of concerns
+④
+One honest challenge faced (e.g. "handling stale API data gracefully")
+⑤
+One thing you'd add with more time (e.g. "expense editing, date filtering, Recharts pie chart")
+
+11. DEPLOYMENT CHECKLIST
+Deploy to Vercel (2 minutes)
+# Option A — Vercel CLI
+npm i -g vercel
+vercel          # auto-detects Vite, follow prompts
+
+# Option B — GitHub → vercel.com
+# Push to GitHub → import repo on vercel.com → done
+
+Pre-Submission Checklist
+Runs with zero console errors
+Passes at 1600×900 (desktop) — check grid layout
+Passes at 414×749 (mobile) — check single column, no overflow
+API error state tested: turn off WiFi, reload — converter shows error banner, not blank
+Empty state looks good: no expenses added yet
+Form validation works: submit blocked with blank name or zero amount
+Delete animation completes before item disappears
+Category bars animate when expenses are added/removed
+localStorage tested: add expenses, refresh — they persist
+GitHub repo is public
+README has screenshot + live link + local setup instructions
+Vercel URL is publicly accessible (not behind auth)
+
+Ship it. Good luck, Rishabh.
+www.marketingmojito.com
